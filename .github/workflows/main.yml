@@ -20,7 +20,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y dotnet-sdk-6.0
 
-    - name: Install Xamarin.Android dependencies
+    - name: Install Android SDK
       run: |
         sudo apt-get install -y openjdk-11-jdk
         sudo apt-get install -y unzip
@@ -28,8 +28,10 @@ jobs:
         unzip -qq commandlinetools-linux-7583922_latest.zip -d $HOME/android-sdk
         echo 'export ANDROID_SDK_ROOT=$HOME/android-sdk' >> $HOME/.bashrc
         echo 'export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin' >> $HOME/.bashrc
-        echo 'y' | sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platforms;android-31" "build-tools;31.0.0" "platform-tools"
-        echo 'y' | sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses
+        source $HOME/.bashrc
+
+    - name: Accept Android SDK licenses
+      run: yes | sdkmanager --licenses
 
     - name: Build Android app
       run: |
