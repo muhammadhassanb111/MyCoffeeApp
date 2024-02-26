@@ -1,0 +1,56 @@
+name: Build Test
+
+on:
+  push:
+    branches:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install .NET SDK
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y apt-transport-https
+        sudo apt-get update
+        sudo apt-get install -y dotnet-sdk-6.0
+
+    - name: Install Xamarin.Android dependencies
+      run: |
+        sudo apt-get install -y openjdk-11-jdk
+        sudo apt-get install -y unzip
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip
+        unzip -qq commandlinetools-linux-7583922_latest.zip -d /usr/local/android-sdk
+        echo 'export ANDROID_SDK_ROOT=/usr/local/android-sdk' >> $HOME/.bashrc
+        echo 'export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin' >> $HOME/.bashrc
+        echo 'y' | sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platforms;android-31" "build-tools;31.0.0" "platform-tools"
+        echo 'y' | sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses
+
+    - name: Build Android app
+      run: |
+        cd MyCoffeeApp/MyCoffeeApp.Android
+        msbuild /t:Restore
+        msbuild /t:Build /p:Configuration=Release
+
+    - name: Install Xamarin.iOS dependencies
+      run: |
+        sudo apt-get install -y wget
+        wget -q https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+        sudo dpkg -i packages-microsoft-prod.deb
+        sudo apt-get update
+        sudo apt-get install -y apt-transport-https
+        sudo apt-get update
+        sudo apt-get install -y dotnet-sdk-6.0
+        sudo apt-get install -y mono-complete
+        sudo apt-get install -y libgdiplus
+
+    - name: Build iOS app
+      run: |
+        cd MyCoffeeApp/MyCoffeeApp.iOS
+        msbuild /t:Restore
+        msbuild /t:Build /p:Configuration=Release
